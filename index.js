@@ -16,8 +16,26 @@ const sequelize = require('./util/db')
 const models = require('./models/index')
 sequelize.models = models;
 
+app.use((req, res, next)=> {
+    models.User.findByPk(1)
+    .then(user => {
+        req.user = user;
+        next();
+    })
+    .catch(err => console.log(err))
+})
+
 sequelize
-    .authenticate()
+    .sync({force: true})
+    .then(() => {
+        return models.User.findByPk(1)
+    })
+    .then(user => {
+        if (!user) {
+            return models.User.create({ name: 'user', email: 'user@localStorage.com', })
+        }
+        return user;
+    })
     .then(() => {
         console.log('Connection to the database has been established successfully');
     })
