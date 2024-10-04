@@ -5,11 +5,6 @@ const app = express();
 
 app.use(bodyParser.urlencoded({extended: true}));
 
-const productAdminRoutes = require('./routes/admin/products')
-app.use('/admin', productAdminRoutes)
-
-const productRoutes = require('./routes/products')
-app.use(productRoutes)
 
 const sequelize = require('./util/db')
 
@@ -26,7 +21,7 @@ app.use((req, res, next)=> {
 })
 
 sequelize
-    .sync({force: true})
+    .sync()
     .then(() => {
         return models.User.findByPk(1)
     })
@@ -36,6 +31,13 @@ sequelize
         }
         return user;
     })
+    .then((user) => {
+        return user.createCart()
+    })
+    .then((cart) => {
+        console.log(cart)
+        app.listen(3002);
+    })
     .then(() => {
         console.log('Connection to the database has been established successfully');
     })
@@ -43,9 +45,17 @@ sequelize
         console.error('Unable to connect ot the database', error);
     })
 
+const productAdminRoutes = require('./routes/admin/products')
+app.use('/admin', productAdminRoutes)
+
+const productRoutes = require('./routes/products')
+app.use(productRoutes)
+
+const shopRoutes = require('./routes/shop')
+app.use(shopRoutes)
+
 
 app.get('/', (req, res) => {
     res.json({message: 'web shop app'})
 })
 
-app.listen(3002);
